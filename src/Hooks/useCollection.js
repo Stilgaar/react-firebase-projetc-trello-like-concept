@@ -1,4 +1,6 @@
+// Hooks React
 import { useEffect, useState, useRef } from "react"
+// base de données
 import { fire } from "../Firebase/config"
 
 export const useCollection = (collection, _query, _orderBy) => {

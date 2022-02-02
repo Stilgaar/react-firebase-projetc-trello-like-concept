@@ -1,5 +1,5 @@
 import { useReducer, useEffect, useState } from "react"
-import { fire, timestamp } from "../firebase/config"
+import { fire, time } from '../Firebase/config'
 
 let initialState = {
   document: null,
@@ -16,6 +16,8 @@ const firestoreReducer = (state, action) => {
       return { isPending: false, document: action.payload, success: true, error: null }
     case 'DELETED_DOCUMENT':
       return { isPending: false, document: null, success: true, error: null }
+    case 'UPDATE_DOCUMENT':
+      return { isPending: false, document: action.payload, super: true, error: null }
     case 'ERROR':
       return { isPending: false, document: null, success: false, error: action.payload }
     default:
@@ -48,7 +50,7 @@ export const useFirestore = (collection) => {
     dispatch({ type: 'IS_PENDING' })
 
     try {
-      const createdAt = timestamp.fromDate(new Date())
+      const createdAt = time.fromDate(new Date())
       const addedDocument = await ref.add({ ...doc, createdAt })
       dispatchIfNotCancelled({ type: 'ADDED_DOCUMENT', payload: addedDocument })
     }
@@ -66,14 +68,30 @@ export const useFirestore = (collection) => {
       dispatchIfNotCancelled({ type: 'DELETED_DOCUMENT' })
     }
     catch (err) {
-      dispatchIfNotCancelled({ type: 'ERROR', payload: 'could not delete' })
+      dispatchIfNotCancelled({ type: 'ERROR', payload: 'Impossible de supprimer' })
     }
   }
+
+  // update document 
+  const updateDocument = async (id, updates) => {
+    dispatch({ type: 'IS_PENDING' })
+
+    try {
+      const updatedDocument = await ref.doc(id).update(updates)
+      dispatchIfNotCancelled({ type: 'UPDATE_DOCUMENT', payload: updatedDocument })
+      return updatedDocument
+    }
+    catch (err) {
+      dispatchIfNotCancelled({ type: 'ERROR', payload: err.message })
+      return null
+    }
+  }
+
   // function cleanup pour unmount le composant si on le quitte pendant le chargement
   useEffect(() => {
     return () => setIsCancelled(true)
   }, [])
 
-  return { addDocument, deleteDocument, response }
+  return { addDocument, deleteDocument, updateDocument, response }
 
 }

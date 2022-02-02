@@ -1,9 +1,24 @@
 rules_version = '2';
 service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if
-          request.time < timestamp.date(2022, 3, 3);
-    }
+  match /databases/{database}/documents { 
+    match /users/{user_id} {
+      allow read, create: if request.auth != null; // le if signifie qu'ils sont online
+      allow update: if request.auth.uid == user_id; // si l'user qui est aut, on compare son id à celle de l'user_id, si c'est bon il peut update (seulement là)
+          }
+      match /project/{project_id} { // on refait la même chose pour les projets
+        allow read, create, update: if request.auth != null;
+        allow delete: if request.auth.uid == resource.data.createdBy.id // les personnes peuvent supprimer que SI ce sont eux qui ont crée le fameux document.
+      }
   }
 }
+
+// ce qu'on a dans les collection (ce qu'il faut surveiller)
+// et ce qu'on peut faire dessus éventuellement ? 
+
+// 'USERS'
+// les personnes authentifiés peuvent crée et lire
+// seuls les personnes qui ont un document peuvent l'update
+
+// 'PROJECT'
+// toutes les personnes auth peuvent lire, cree et update un doc
+// seules les personnes qui ont leurs propre projet peuvent le supprimer
