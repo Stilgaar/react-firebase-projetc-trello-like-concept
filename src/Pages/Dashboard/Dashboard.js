@@ -18,7 +18,6 @@ function Dashboard() {
     const { documents, error } = useCollection('project')
     const { user } = useAuthContext()
 
-    console.log(documents)
 
     const [currentFilter, setCurrentFilter] = useState('all')
 
